@@ -1,13 +1,12 @@
 import { json, error } from '@sveltejs/kit';
 import Anthropic from '@anthropic-ai/sdk';
-import { ANTHROPIC_API_KEY } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 import { db } from '$lib/server/db';
 import { auditLog } from '$lib/server/db/schema';
 import type { RequestHandler } from './$types';
 
-const client = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
-
 export const POST: RequestHandler = async ({ request, locals }) => {
+	const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
 	if (!locals.user) error(401, 'Unauthorized');
 	const { query, items } = await request.json() as { query: string; items: Array<{ id: string; name: string; category: string }> };
 	if (!query?.trim() || !Array.isArray(items)) error(400, 'Invalid request');

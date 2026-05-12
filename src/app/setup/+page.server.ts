@@ -4,7 +4,8 @@ import { randomBytes } from 'crypto';
 import { db } from '$lib/server/db';
 import { users, vaultCategories } from '$lib/server/db/schema';
 import { lucia } from '$lib/server/auth';
-import { SETUP_SECRET } from '$env/static/private';
+import { env } from '$env/dynamic/private';
+const { SETUP_SECRET } = env;
 import type { PageServerLoad, Actions } from './$types';
 
 const DEFAULT_CATEGORIES = [
