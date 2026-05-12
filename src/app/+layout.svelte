@@ -42,9 +42,11 @@
 
 	onDestroy(() => {
 		clearTimeout(lockTimer);
-		window.removeEventListener('mousemove', resetTimer);
-		window.removeEventListener('keydown', resetTimer);
-		window.removeEventListener('click', resetTimer);
+		if (typeof window !== 'undefined') {
+			window.removeEventListener('mousemove', resetTimer);
+			window.removeEventListener('keydown', resetTimer);
+			window.removeEventListener('click', resetTimer);
+		}
 	});
 
 	function handleKeydown(e: KeyboardEvent) {
