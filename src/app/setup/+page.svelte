@@ -7,6 +7,8 @@
 	let password = $state('');
 	let loading = $state(false);
 	let error = $state('');
+	let showPassword = $state(false);
+	let showConfirm = $state(false);
 
 	const handleSetup = () => {
 		const capturedPassword = password;
@@ -50,11 +52,21 @@
 				</div>
 				<div class="mb-4">
 					<label class="block text-xs font-medium text-muted mb-1.5" for="password">Master Password</label>
-					<input id="password" name="password" type="password" bind:value={password} placeholder="Min. 12 characters" autocomplete="new-password" class="input-glass w-full px-4 py-3 rounded-xl text-sm" required />
+					<div class="relative">
+						<input id="password" name="password" type={showPassword ? 'text' : 'password'} bind:value={password} placeholder="Min. 12 characters" autocomplete="new-password" class="input-glass w-full px-4 py-3 pr-11 rounded-xl text-sm" required />
+						<button type="button" onclick={() => (showPassword = !showPassword)} class="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-white transition-colors">
+							{showPassword ? '🙈' : '👁️'}
+						</button>
+					</div>
 				</div>
 				<div class="mb-6">
 					<label class="block text-xs font-medium text-muted mb-1.5" for="confirm">Confirm Password</label>
-					<input id="confirm" name="confirm" type="password" placeholder="Repeat password" autocomplete="new-password" class="input-glass w-full px-4 py-3 rounded-xl text-sm" required />
+					<div class="relative">
+						<input id="confirm" name="confirm" type={showConfirm ? 'text' : 'password'} placeholder="Repeat password" autocomplete="new-password" class="input-glass w-full px-4 py-3 pr-11 rounded-xl text-sm" required />
+						<button type="button" onclick={() => (showConfirm = !showConfirm)} class="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-white transition-colors">
+							{showConfirm ? '🙈' : '👁️'}
+						</button>
+					</div>
 				</div>
 				<button type="submit" disabled={loading} class="btn-primary w-full py-3 rounded-xl text-sm">
 					{loading ? 'Creating vault…' : 'Create Vault'}
