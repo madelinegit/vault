@@ -1,7 +1,7 @@
 import { eq, and } from 'drizzle-orm';
 import { error, redirect } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
-import { vaultCategories, vaultProjects } from '$lib/server/db/schema';
+import { vaultCategories, vaultProjects, vaultItems } from '$lib/server/db/schema';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
@@ -14,11 +14,18 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 
 	if (!category) error(404, 'Category not found');
 
-	const projects = await db
+	const [project] = await db
 		.select()
 		.from(vaultProjects)
-		.where(and(eq(vaultProjects.categoryId, params.categoryId), eq(vaultProjects.userId, locals.user.id)))
-		.orderBy(vaultProjects.sortOrder);
+		.where(and(eq(vaultProjects.id, params.projectId), eq(vaultProjects.userId, locals.user.id)));
 
-	return { category, projects };
+	if (!project) error(404, 'Project not found');
+
+	const items = await db
+		.select()
+		.from(vaultItems)
+		.where(and(eq(vaultItems.projectId, params.projectId), eq(vaultItems.userId, locals.user.id)))
+		.orderBy(vaultItems.sortOrder);
+
+	return { category, project, items };
 };

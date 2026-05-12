@@ -4,12 +4,13 @@ export interface VaultField {
 	id: string;
 	label: string;
 	value: string;
-	type: 'text' | 'password' | 'url' | 'email' | 'phone' | 'note' | 'number';
+	type: 'text' | 'password' | 'url' | 'email' | 'phone' | 'note' | 'number' | 'image';
 }
 
 export interface DecryptedItem {
 	id: string;
 	categoryId: string;
+	projectId: string | null;
 	name: string;
 	fields: VaultField[];
 	sortOrder: number;

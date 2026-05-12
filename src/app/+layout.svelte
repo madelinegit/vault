@@ -5,6 +5,7 @@
 	import '../app.css';
 	import Nav from '$lib/components/Nav.svelte';
 	import AIAssistant from '$lib/components/AIAssistant.svelte';
+	import Toast from '$lib/components/Toast.svelte';
 	import { vaultStore } from '$lib/stores/vault';
 	import type { LayoutData } from './$types';
 
@@ -77,3 +78,5 @@
 {#if aiOpen}
 	<AIAssistant onClose={() => (aiOpen = false)} />
 {/if}
+
+<Toast />

@@ -54,6 +54,14 @@
 				class="absolute right-0 top-full mt-2 w-48 glass-strong rounded-xl py-1 z-50"
 				style="box-shadow: 0 8px 32px rgba(0,0,0,0.4);"
 			>
+				<a
+					href="/vault/security"
+					onclick={() => (menuOpen = false)}
+					class="block w-full text-left px-4 py-2.5 text-sm text-muted hover:text-celeste transition-colors no-underline"
+				>
+					🛡️ Security
+				</a>
+				<hr style="border-color: rgba(212,184,224,0.12); margin: 4px 0;" />
 				<button
 					onclick={() => { menuOpen = false; onLock(); }}
 					class="w-full text-left px-4 py-2.5 text-sm text-muted hover:text-lilac transition-colors"

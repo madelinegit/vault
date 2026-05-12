@@ -27,6 +27,19 @@ export const vaultCategories = pgTable('vault_categories', {
 	createdAt: timestamp('created_at').defaultNow().notNull()
 });
 
+export const vaultProjects = pgTable('vault_projects', {
+	id: text('id').primaryKey(),
+	userId: text('user_id')
+		.notNull()
+		.references(() => users.id, { onDelete: 'cascade' }),
+	categoryId: text('category_id')
+		.notNull()
+		.references(() => vaultCategories.id, { onDelete: 'cascade' }),
+	name: text('name').notNull(),
+	sortOrder: integer('sort_order').notNull().default(0),
+	createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
 export const vaultItems = pgTable('vault_items', {
 	id: text('id').primaryKey(),
 	userId: text('user_id')
@@ -35,6 +48,7 @@ export const vaultItems = pgTable('vault_items', {
 	categoryId: text('category_id')
 		.notNull()
 		.references(() => vaultCategories.id, { onDelete: 'cascade' }),
+	projectId: text('project_id').references(() => vaultProjects.id, { onDelete: 'cascade' }),
 	name: text('name').notNull(),
 	encryptedData: text('encrypted_data').notNull(),
 	iv: text('iv').notNull(),
