@@ -28,6 +28,9 @@
 		"typescript": "^6.0.2",
 		"vite": "^8.0.7"
 	},
+	"engines": {
+		"node": ">=20"
+	},
 	"dependencies": {
 		"@anthropic-ai/sdk": "^0.92.0",
 		"@lucia-auth/adapter-drizzle": "^1.1.0",
