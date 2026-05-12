@@ -7,6 +7,7 @@
 	let password = $state('');
 	let loading = $state(false);
 	let error = $state('');
+	let showSecret = $state(false);
 	let showPassword = $state(false);
 	let showConfirm = $state(false);
 
@@ -44,7 +45,12 @@
 			<form method="POST" action="?/setup" use:enhance={handleSetup}>
 				<div class="mb-4">
 					<label class="block text-xs font-medium text-muted mb-1.5" for="secret">Setup Secret</label>
-					<input id="secret" name="secret" type="password" placeholder="From your .env file" class="input-glass w-full px-4 py-3 rounded-xl text-sm" required />
+					<div class="relative">
+						<input id="secret" name="secret" type={showSecret ? 'text' : 'password'} placeholder="From your Railway variables" class="input-glass w-full px-4 py-3 pr-11 rounded-xl text-sm" required />
+						<button type="button" onclick={() => (showSecret = !showSecret)} class="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-white transition-colors">
+							{showSecret ? '🙈' : '👁️'}
+						</button>
+					</div>
 				</div>
 				<div class="mb-4">
 					<label class="block text-xs font-medium text-muted mb-1.5" for="email">Email</label>
@@ -53,7 +59,7 @@
 				<div class="mb-4">
 					<label class="block text-xs font-medium text-muted mb-1.5" for="password">Master Password</label>
 					<div class="relative">
-						<input id="password" name="password" type={showPassword ? 'text' : 'password'} bind:value={password} placeholder="Min. 12 characters" autocomplete="new-password" class="input-glass w-full px-4 py-3 pr-11 rounded-xl text-sm" required />
+						<input id="password" name="password" type={showPassword ? 'text' : 'password'} bind:value={password} placeholder="Min. 8 characters" autocomplete="new-password" class="input-glass w-full px-4 py-3 pr-11 rounded-xl text-sm" required />
 						<button type="button" onclick={() => (showPassword = !showPassword)} class="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-white transition-colors">
 							{showPassword ? '🙈' : '👁️'}
 						</button>

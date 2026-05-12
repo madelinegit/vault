@@ -39,7 +39,7 @@ export const actions: Actions = {
 		if (typeof email !== 'string' || typeof password !== 'string' || !email || !password)
 			return fail(400, { error: 'Email and password are required.' });
 		if (password !== confirm) return fail(400, { error: 'Passwords do not match.' });
-		if (password.length < 12) return fail(400, { error: 'Password must be at least 12 characters.' });
+		if (password.length < 8) return fail(400, { error: 'Password must be at least 8 characters.' });
 
 		const hashedPassword = await hash(password, {
 			memoryCost: 19456,
