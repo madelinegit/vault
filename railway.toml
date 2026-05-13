@@ -3,7 +3,7 @@ builder = "nixpacks"
 buildCommand = "npm run build"
 
 [deploy]
-preDeployCommand = "npm run db:push"
+preDeployCommand = "node migrate.js"
 startCommand = "node build"
 healthcheckPath = "/login"
 restartPolicyType = "on_failure"
