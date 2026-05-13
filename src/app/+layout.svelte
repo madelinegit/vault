@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	import favicon from '$lib/assets/favicon.svg';
 	import '../app.css';
 	import Nav from '$lib/components/Nav.svelte';
@@ -27,7 +28,7 @@
 	}
 
 	$effect(() => {
-		if (data.user && $vaultStore.locked) {
+		if (data.user && $vaultStore.locked && !$page.url.pathname.startsWith('/login')) {
 			goto('/login');
 		}
 	});
