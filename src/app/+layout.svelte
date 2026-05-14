@@ -12,7 +12,7 @@
 
 	let { children, data }: { children: import('svelte').Snippet; data: LayoutData } = $props();
 
-	const LOCK_MS = 25 * 60 * 1000;
+	const LOCK_MS = 60 * 60 * 1000;
 	let lockTimer: ReturnType<typeof setTimeout>;
 	let aiOpen = $state(false);
 
