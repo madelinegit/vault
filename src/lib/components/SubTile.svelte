@@ -50,20 +50,44 @@
 		showPasswords = next;
 	}
 
-	async function handleImageUpload(e: Event, fieldId: string) {
+	async function handleFileUpload(e: Event, fieldId: string) {
 		const file = (e.target as HTMLInputElement).files?.[0];
 		if (!file) return;
-		if (file.size > 2 * 1024 * 1024) {
-			alert('Image must be under 2MB');
+		if (file.size > 20 * 1024 * 1024) {
+			alert('File must be under 20MB');
 			return;
 		}
 		const reader = new FileReader();
 		reader.onload = () => {
+			// Store as "filename||dataURL" so we can show the name for non-images
+			const dataUrl = reader.result as string;
 			draftFields = draftFields.map((f) =>
-				f.id === fieldId ? { ...f, value: reader.result as string } : f
+				f.id === fieldId ? { ...f, value: `${file.name}||${dataUrl}` } : f
 			);
 		};
 		reader.readAsDataURL(file);
+	}
+
+	function getFileName(value: string) {
+		return value.includes('||') ? value.split('||')[0] : 'file';
+	}
+
+	function getFileData(value: string) {
+		return value.includes('||') ? value.split('||')[1] : value;
+	}
+
+	function isImage(value: string) {
+		const data = getFileData(value);
+		return data.startsWith('data:image/');
+	}
+
+	function downloadFile(value: string) {
+		const name = getFileName(value);
+		const data = getFileData(value);
+		const a = document.createElement('a');
+		a.href = data;
+		a.download = name;
+		a.click();
 	}
 
 	function save() {
@@ -134,12 +158,18 @@
 						<div class="flex flex-col gap-1.5">
 							<input
 								type="file"
-								accept="image/*"
-								onchange={(e) => handleImageUpload(e, field.id)}
+								onchange={(e) => handleFileUpload(e, field.id)}
 								class="text-xs text-muted file:btn-ghost file:rounded-lg file:px-3 file:py-1 file:text-xs file:mr-2 file:border-0"
 							/>
 							{#if field.value}
-								<img src={field.value} alt={field.label || 'attachment'} class="rounded-lg max-h-32 object-contain" />
+								{#if isImage(field.value)}
+									<img src={getFileData(field.value)} alt={field.label || 'attachment'} class="rounded-lg max-h-32 object-contain" />
+								{:else}
+									<div class="flex items-center gap-2 text-xs" style="color: rgba(212,184,224,0.6);">
+										<span>📎</span>
+										<span class="truncate">{getFileName(field.value)}</span>
+									</div>
+								{/if}
 							{/if}
 						</div>
 					{:else}
@@ -183,7 +213,19 @@
 			<div class="flex flex-col gap-1">
 				<span class="text-xs text-muted capitalize">{field.label || field.type}</span>
 				{#if field.type === 'image' && field.value}
-					<img src={field.value} alt={field.label || 'attachment'} class="rounded-lg max-h-48 object-contain cursor-pointer" onclick={() => window.open(field.value, '_blank')} />
+					{#if isImage(field.value)}
+						<img src={getFileData(field.value)} alt={field.label || 'attachment'} class="rounded-lg max-h-48 object-contain cursor-pointer" onclick={() => window.open(getFileData(field.value), '_blank')} />
+					{:else}
+						<button
+							onclick={() => downloadFile(field.value)}
+							class="flex items-center gap-2 text-xs px-3 py-2 rounded-lg w-fit"
+							style="background: rgba(212,184,224,0.08); color: rgba(212,184,224,0.7);"
+						>
+							<span>📎</span>
+							<span class="max-w-[180px] truncate">{getFileName(field.value)}</span>
+							<span style="color: rgba(153,229,234,0.6);">↓</span>
+						</button>
+					{/if}
 				{:else if field.type === 'note'}
 					<p class="text-xs font-mono whitespace-pre-wrap break-words" style="color: rgba(212,184,224,0.9);">{field.value || '—'}</p>
 				{:else}
