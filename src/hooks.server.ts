@@ -1,11 +1,10 @@
 import type { Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { lucia } from '$lib/server/auth';
-import { db } from '$lib/server/db';
-import { sql } from 'drizzle-orm';
+import { client } from '$lib/server/db';
 
 async function runMigrations() {
-	await db.execute(sql`
+	await client`
 		CREATE TABLE IF NOT EXISTS vault_projects (
 			id text PRIMARY KEY NOT NULL,
 			user_id text NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -14,13 +13,14 @@ async function runMigrations() {
 			sort_order integer NOT NULL DEFAULT 0,
 			created_at timestamp DEFAULT now() NOT NULL
 		)
-	`);
-	await db.execute(sql`
+	`;
+	await client`
 		ALTER TABLE vault_items ADD COLUMN IF NOT EXISTS project_id text REFERENCES vault_projects(id) ON DELETE CASCADE
-	`);
+	`;
+	console.log('[migration] vault_projects ready');
 }
 
-runMigrations().catch(console.error);
+runMigrations().catch((e) => console.error('[migration] failed:', e));
 
 const authHandle: Handle = async ({ event, resolve }) => {
 	const sessionId = event.cookies.get(lucia.sessionCookieName);
