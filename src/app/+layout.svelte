@@ -71,7 +71,7 @@
 		<Nav email={data.user.email} onAiClick={() => (aiOpen = !aiOpen)} onLock={lockVault} />
 	{/if}
 
-	<main class="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full">
+	<main class={data.user ? 'flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full' : 'flex-1 flex flex-col'}>
 		{@render children()}
 	</main>
 </div>
