@@ -29,7 +29,11 @@ Return ONLY a valid JSON array of matching IDs, e.g. ["id1","id2"]. Return [] if
 	const content = message.content[0];
 	if (content.type !== 'text') return json({ matchedIds: [] });
 	try {
-		const matchedIds = JSON.parse(content.text.trim());
+		// Strip markdown code fences Claude sometimes adds, then grab the first JSON array
+		const text = content.text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+		const arrayMatch = text.match(/\[[\s\S]*\]/);
+		if (!arrayMatch) return json({ matchedIds: [] });
+		const matchedIds = JSON.parse(arrayMatch[0]);
 		return json({ matchedIds: Array.isArray(matchedIds) ? matchedIds : [] });
 	} catch {
 		return json({ matchedIds: [] });
