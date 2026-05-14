@@ -118,17 +118,17 @@
 						</div>
 					</div>
 				{:else}
-					<button
-						onclick={() => goto(`/vault/${data.category.id}/${project.id}`)}
+					<a
+						href="/vault/{data.category.id}/{project.id}"
 						class="tile tile-hover w-full text-left rounded-2xl flex flex-col justify-between"
-						style="aspect-ratio: 1 / 1; padding: 1.25rem;"
+						style="aspect-ratio: 1 / 1; padding: 1.25rem; text-decoration: none; display: flex;"
 					>
 						<div></div>
 						<div>
 							<h3 class="font-semibold text-sm leading-snug" style="color: #D4B8E0;">{project.name}</h3>
 							<p class="text-xs mt-1" style="color: rgba(153,229,234,0.5);">Open →</p>
 						</div>
-					</button>
+					</a>
 
 					<div class="absolute top-2.5 right-2.5 flex gap-1 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity z-10">
 						<button

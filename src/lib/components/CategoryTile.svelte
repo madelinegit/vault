@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-
 	let {
 		category,
 		onDelete
@@ -13,21 +11,21 @@
 </script>
 
 <div class="relative group">
-	<button
-		onclick={() => goto(`/vault/${category.id}`)}
+	<a
+		href="/vault/{category.id}"
 		class="tile tile-hover rounded-2xl w-full text-left flex flex-col justify-between"
-		style="aspect-ratio: 1 / 1; padding: 1.5rem;"
+		style="aspect-ratio: 1 / 1; padding: 1.5rem; text-decoration: none; display: flex;"
 	>
 		<span class="text-5xl relative z-10">{category.icon}</span>
 		<div class="relative z-10">
 			<span class="font-semibold text-sm leading-snug block" style="color: #D4B8E0;">{category.name}</span>
 			<span class="text-xs mt-1 block" style="color: rgba(153,229,234,0.45);">Open →</span>
 		</div>
-	</button>
+	</a>
 
 	<button
 		onclick={(e) => { e.stopPropagation(); showMenu = !showMenu; }}
-		class="absolute top-3 right-3 w-7 h-7 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-sm z-20"
+		class="absolute top-3 right-3 w-7 h-7 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity text-sm z-20"
 		style="background: rgba(13,7,32,0.7); border: 1px solid rgba(212,184,224,0.18); color: rgba(212,184,224,0.7);"
 		aria-label="Category options"
 	>⋯</button>
