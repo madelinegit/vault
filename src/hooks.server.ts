@@ -17,6 +17,7 @@ async function runMigrations() {
 	await client`
 		ALTER TABLE vault_items ADD COLUMN IF NOT EXISTS project_id text REFERENCES vault_projects(id) ON DELETE CASCADE
 	`;
+	await client`ALTER TABLE vault_items ALTER COLUMN sort_order TYPE bigint`;
 	console.log('[migration] vault_projects ready');
 }
 
