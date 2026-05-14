@@ -24,6 +24,7 @@
 	let draftFields = $state<VaultField[]>([]);
 	let copied = $state<string | null>(null);
 	let showPasswords = $state<Set<string>>(new Set());
+	let nameError = $state(false);
 
 	$effect.root(() => {
 		editing = initialEdit;
@@ -91,7 +92,11 @@
 	}
 
 	function save() {
-		if (!draftName.trim()) return;
+		if (!draftName.trim()) {
+			nameError = true;
+			return;
+		}
+		nameError = false;
 		if (isNew) {
 			onSave(draftName, draftFields);
 		} else {
@@ -122,8 +127,10 @@
 		<input
 			type="text"
 			bind:value={draftName}
-			placeholder="Item name (e.g. Chase Sapphire)"
+			oninput={() => (nameError = false)}
+			placeholder="Item name — required"
 			class="input-glass w-full px-3 py-2 rounded-xl text-sm font-semibold"
+			style={nameError ? 'border-color: rgba(239,68,68,0.6); box-shadow: 0 0 0 3px rgba(239,68,68,0.1);' : ''}
 		/>
 
 		<div class="flex flex-col gap-2">
