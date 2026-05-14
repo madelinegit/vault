@@ -94,48 +94,52 @@
 		</div>
 	{/if}
 
-	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+	<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
 		{#each projects as project (project.id)}
 			<div
-				class="glass rounded-2xl p-5 flex flex-col gap-3 group"
+				class="relative group glass glass-hover rounded-2xl flex flex-col justify-between"
 				class:cursor-pointer={editingId !== project.id}
+				style="aspect-ratio: 1 / 1; padding: 1.25rem;"
 				onclick={() => editingId !== project.id && goto(`/vault/${data.category.id}/${project.id}`)}
 				role="button"
 				tabindex="0"
 				onkeydown={(e) => e.key === 'Enter' && editingId !== project.id && goto(`/vault/${data.category.id}/${project.id}`)}
 			>
 				{#if editingId === project.id}
-					<input
-						type="text"
-						bind:value={editName}
-						class="input-glass w-full px-3 py-2 rounded-xl text-sm font-semibold"
-						onclick={(e) => e.stopPropagation()}
-						onkeydown={(e) => {
-							if (e.key === 'Enter') renameProject(project.id);
-							if (e.key === 'Escape') editingId = null;
-						}}
-					/>
-					<div class="flex gap-2" onclick={(e) => e.stopPropagation()} role="none">
-						<button onclick={() => renameProject(project.id)} class="btn-primary flex-1 py-1.5 rounded-lg text-xs">Save</button>
-						<button onclick={() => (editingId = null)} class="btn-ghost flex-1 py-1.5 rounded-lg text-xs">Cancel</button>
+					<div class="flex flex-col gap-2 h-full justify-center" onclick={(e) => e.stopPropagation()} role="none">
+						<input
+							type="text"
+							bind:value={editName}
+							class="input-glass w-full px-3 py-2 rounded-xl text-sm font-semibold"
+							onkeydown={(e) => {
+								if (e.key === 'Enter') renameProject(project.id);
+								if (e.key === 'Escape') editingId = null;
+							}}
+						/>
+						<div class="flex gap-2">
+							<button onclick={() => renameProject(project.id)} class="btn-primary flex-1 py-1.5 rounded-lg text-xs">Save</button>
+							<button onclick={() => (editingId = null)} class="btn-ghost flex-1 py-1.5 rounded-lg text-xs">Cancel</button>
+						</div>
 					</div>
 				{:else}
-					<div class="flex items-center justify-between gap-2">
-						<h3 class="font-semibold text-sm text-lilac">{project.name}</h3>
-						<div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+					<div class="flex justify-end">
+						<div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
 							<button
 								onclick={(e) => { e.stopPropagation(); editName = project.name; editingId = project.id; }}
-								class="text-xs text-muted hover:text-celeste px-2 py-1 rounded-lg transition-colors"
-								style="background: rgba(153,229,234,0.08);"
+								class="text-xs px-2 py-1 rounded-lg transition-colors"
+								style="background: rgba(13,7,32,0.5); border: 1px solid rgba(212,184,224,0.15); color: rgba(212,184,224,0.5);"
 							>Edit</button>
 							<button
 								onclick={(e) => { e.stopPropagation(); deleteProject(project.id); }}
-								class="text-xs text-muted hover:text-red-400 px-2 py-1 rounded-lg transition-colors"
-								style="background: rgba(239,68,68,0.08);"
+								class="text-xs px-2 py-1 rounded-lg transition-colors"
+								style="background: rgba(13,7,32,0.5); border: 1px solid rgba(239,68,68,0.15); color: rgba(252,165,165,0.5);"
 							>Del</button>
 						</div>
 					</div>
-					<p class="text-xs text-muted">Tap to open →</p>
+					<div>
+						<h3 class="font-semibold text-sm leading-snug" style="color: #D4B8E0;">{project.name}</h3>
+						<p class="text-xs mt-1" style="color: rgba(153,229,234,0.5);">Open →</p>
+					</div>
 				{/if}
 			</div>
 		{/each}
