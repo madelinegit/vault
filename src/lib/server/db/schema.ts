@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, integer } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, integer, bigint } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
 	id: text('id').primaryKey(),
@@ -36,7 +36,7 @@ export const vaultProjects = pgTable('vault_projects', {
 		.notNull()
 		.references(() => vaultCategories.id, { onDelete: 'cascade' }),
 	name: text('name').notNull(),
-	sortOrder: integer('sort_order').notNull().default(0),
+	sortOrder: bigint('sort_order', { mode: 'number' }).notNull().default(0),
 	createdAt: timestamp('created_at').defaultNow().notNull()
 });
 
