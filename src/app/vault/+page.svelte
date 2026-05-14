@@ -37,14 +37,14 @@
 <div>
 	<div class="flex items-center justify-between mb-8">
 		<div>
-			<h1 class="text-2xl font-bold text-lilac">Your Vault</h1>
-			<p class="text-muted text-sm mt-0.5">
-				{data.categories.length} categories &mdash; press
+			<h1 class="text-3xl font-bold gradient-text">Your Vault</h1>
+			<p class="text-muted text-sm mt-1">
+				{data.categories.length} {data.categories.length === 1 ? 'category' : 'categories'} &mdash; press
 				<kbd class="px-1.5 py-0.5 rounded text-xs" style="background: rgba(212,184,224,0.12); border: 1px solid rgba(212,184,224,0.2);">⌘K</kbd>
 				for AI search
 			</p>
 		</div>
-		<button onclick={() => (showAddCategory = !showAddCategory)} class="btn-ghost px-4 py-2 rounded-xl text-sm font-medium">
+		<button onclick={() => (showAddCategory = !showAddCategory)} class="btn-primary px-5 py-2.5 rounded-xl text-sm">
 			+ Add Category
 		</button>
 	</div>

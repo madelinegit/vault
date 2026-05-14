@@ -61,15 +61,19 @@
 </script>
 
 <div>
-	<div class="flex items-center gap-3 mb-8">
-		<button onclick={() => goto('/vault')} class="btn-ghost px-3 py-2 rounded-xl text-sm">← Back</button>
+	<!-- Breadcrumb -->
+	<nav class="flex items-center gap-2 mb-6 text-xs" style="color: rgba(237,225,245,0.4);">
+		<button onclick={() => goto('/vault')} class="hover:text-lilac transition-colors">Your Vault</button>
+		<span>›</span>
+		<span style="color: rgba(212,184,224,0.85);">{data.category.icon} {data.category.name}</span>
+	</nav>
+
+	<div class="flex items-center justify-between mb-8">
 		<div>
-			<h1 class="text-2xl font-bold text-lilac flex items-center gap-2">
-				<span>{data.category.icon}</span>{data.category.name}
-			</h1>
+			<h1 class="text-2xl font-bold text-lilac">{data.category.name}</h1>
 			<p class="text-muted text-sm mt-0.5">{projects.length} {projects.length === 1 ? 'project' : 'projects'}</p>
 		</div>
-		<button onclick={() => (showNew = !showNew)} class="btn-primary ml-auto px-5 py-2.5 rounded-xl text-sm">
+		<button onclick={() => (showNew = !showNew)} class="btn-primary px-5 py-2.5 rounded-xl text-sm">
 			+ New Project
 		</button>
 	</div>
@@ -96,17 +100,9 @@
 
 	<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
 		{#each projects as project (project.id)}
-			<div
-				class="relative group glass glass-hover rounded-2xl flex flex-col justify-between"
-				class:cursor-pointer={editingId !== project.id}
-				style="aspect-ratio: 1 / 1; padding: 1.25rem;"
-				onclick={() => editingId !== project.id && goto(`/vault/${data.category.id}/${project.id}`)}
-				role="button"
-				tabindex="0"
-				onkeydown={(e) => e.key === 'Enter' && editingId !== project.id && goto(`/vault/${data.category.id}/${project.id}`)}
-			>
+			<div class="relative group">
 				{#if editingId === project.id}
-					<div class="flex flex-col gap-2 h-full justify-center" onclick={(e) => e.stopPropagation()} role="none">
+					<div class="tile rounded-2xl flex flex-col gap-3 justify-center" style="aspect-ratio: 1 / 1; padding: 1.25rem;">
 						<input
 							type="text"
 							bind:value={editName}
@@ -122,23 +118,29 @@
 						</div>
 					</div>
 				{:else}
-					<div class="flex justify-end">
-						<div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-							<button
-								onclick={(e) => { e.stopPropagation(); editName = project.name; editingId = project.id; }}
-								class="text-xs px-2 py-1 rounded-lg transition-colors"
-								style="background: rgba(13,7,32,0.5); border: 1px solid rgba(212,184,224,0.15); color: rgba(212,184,224,0.5);"
-							>Edit</button>
-							<button
-								onclick={(e) => { e.stopPropagation(); deleteProject(project.id); }}
-								class="text-xs px-2 py-1 rounded-lg transition-colors"
-								style="background: rgba(13,7,32,0.5); border: 1px solid rgba(239,68,68,0.15); color: rgba(252,165,165,0.5);"
-							>Del</button>
+					<button
+						onclick={() => goto(`/vault/${data.category.id}/${project.id}`)}
+						class="tile tile-hover w-full text-left rounded-2xl flex flex-col justify-between"
+						style="aspect-ratio: 1 / 1; padding: 1.25rem;"
+					>
+						<div></div>
+						<div>
+							<h3 class="font-semibold text-sm leading-snug" style="color: #D4B8E0;">{project.name}</h3>
+							<p class="text-xs mt-1" style="color: rgba(153,229,234,0.5);">Open →</p>
 						</div>
-					</div>
-					<div>
-						<h3 class="font-semibold text-sm leading-snug" style="color: #D4B8E0;">{project.name}</h3>
-						<p class="text-xs mt-1" style="color: rgba(153,229,234,0.5);">Open →</p>
+					</button>
+
+					<div class="absolute top-2.5 right-2.5 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+						<button
+							onclick={(e) => { e.stopPropagation(); editName = project.name; editingId = project.id; }}
+							class="text-xs px-2 py-1 rounded-lg transition-colors"
+							style="background: rgba(13,7,32,0.7); border: 1px solid rgba(212,184,224,0.2); color: rgba(212,184,224,0.7);"
+						>Edit</button>
+						<button
+							onclick={(e) => { e.stopPropagation(); deleteProject(project.id); }}
+							class="text-xs px-2 py-1 rounded-lg transition-colors"
+							style="background: rgba(13,7,32,0.7); border: 1px solid rgba(239,68,68,0.2); color: rgba(252,165,165,0.7);"
+						>Del</button>
 					</div>
 				{/if}
 			</div>

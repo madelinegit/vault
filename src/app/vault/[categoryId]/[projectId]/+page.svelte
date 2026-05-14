@@ -95,14 +95,21 @@
 </script>
 
 <div>
-	<div class="flex items-center gap-3 mb-8">
-		<button onclick={() => goto(`/vault/${data.category.id}`)} class="btn-ghost px-3 py-2 rounded-xl text-sm">← Back</button>
+	<!-- Breadcrumb -->
+	<nav class="flex items-center gap-2 mb-6 text-xs" style="color: rgba(237,225,245,0.4);">
+		<button onclick={() => goto('/vault')} class="hover:text-lilac transition-colors">Your Vault</button>
+		<span>›</span>
+		<button onclick={() => goto(`/vault/${data.category.id}`)} class="hover:text-lilac transition-colors">{data.category.icon} {data.category.name}</button>
+		<span>›</span>
+		<span style="color: rgba(212,184,224,0.85);">{data.project.name}</span>
+	</nav>
+
+	<div class="flex items-center justify-between mb-8">
 		<div>
-			<p class="text-xs text-muted mb-0.5">{data.category.icon} {data.category.name}</p>
 			<h1 class="text-2xl font-bold text-lilac">{data.project.name}</h1>
 			<p class="text-muted text-sm mt-0.5">{decryptedItems.length} {decryptedItems.length === 1 ? 'item' : 'items'}</p>
 		</div>
-		<button onclick={() => (showNew = !showNew)} class="btn-primary ml-auto px-5 py-2.5 rounded-xl text-sm">
+		<button onclick={() => (showNew = !showNew)} class="btn-primary px-5 py-2.5 rounded-xl text-sm">
 			+ Add Item
 		</button>
 	</div>
