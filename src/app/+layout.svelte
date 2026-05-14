@@ -69,11 +69,16 @@
 <div class="min-h-screen flex flex-col">
 	{#if data.user}
 		<Nav email={data.user.email} onAiClick={() => (aiOpen = !aiOpen)} onLock={lockVault} />
+		<main class="flex-1 w-full">
+			<div class="page-content">
+				{@render children()}
+			</div>
+		</main>
+	{:else}
+		<main class="flex-1 w-full flex flex-col">
+			{@render children()}
+		</main>
 	{/if}
-
-	<main class="flex-1 w-full" class:authed={!!data.user}>
-		{@render children()}
-	</main>
 </div>
 
 {#if aiOpen}
@@ -83,19 +88,13 @@
 <Toast />
 
 <style>
-	main.authed {
-		padding: 2rem 2.5rem;
-		max-width: 90rem;
-		margin-left: auto;
-		margin-right: auto;
+	.page-content {
+		padding: 2rem 1.5rem;
+		max-width: 100%;
 	}
 	@media (max-width: 640px) {
-		main.authed {
-			padding: 1.25rem;
+		.page-content {
+			padding: 1.25rem 1rem;
 		}
-	}
-	main:not(.authed) {
-		display: flex;
-		flex-direction: column;
 	}
 </style>

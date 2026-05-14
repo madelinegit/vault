@@ -4,7 +4,7 @@ export interface VaultField {
 	id: string;
 	label: string;
 	value: string;
-	type: 'text' | 'password' | 'url' | 'email' | 'phone' | 'note' | 'number' | 'image';
+	type: 'text' | 'password' | 'url' | 'email' | 'phone' | 'note' | 'comment' | 'number' | 'file';
 }
 
 export interface DecryptedItem {
@@ -14,6 +14,8 @@ export interface DecryptedItem {
 	name: string;
 	fields: VaultField[];
 	sortOrder: number;
+	createdAt?: string;
+	updatedAt?: string;
 }
 
 interface VaultState {

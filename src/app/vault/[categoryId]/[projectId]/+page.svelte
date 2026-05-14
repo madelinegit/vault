@@ -10,6 +10,7 @@
 
 	let decryptedItems = $state<DecryptedItem[]>([]);
 	let decryptError = $state('');
+	let decrypting = $state(false);
 	let showNew = $state(false);
 
 	$effect(() => {
@@ -20,6 +21,7 @@
 
 	async function decryptAll(key: CryptoKey) {
 		decryptError = '';
+		decrypting = true;
 		try {
 			const results = await Promise.all(
 				data.items.map(async (item) => {
@@ -30,13 +32,17 @@
 						projectId: item.projectId ?? null,
 						name: item.name,
 						fields,
-						sortOrder: item.sortOrder
+						sortOrder: item.sortOrder,
+						createdAt: item.createdAt instanceof Date ? item.createdAt.toISOString() : String(item.createdAt),
+						updatedAt: item.updatedAt instanceof Date ? item.updatedAt.toISOString() : String(item.updatedAt)
 					};
 				})
 			);
 			decryptedItems = results;
 		} catch {
 			decryptError = 'Wrong master password — could not decrypt items.';
+		} finally {
+			decrypting = false;
 		}
 	}
 
@@ -58,7 +64,7 @@
 			const saved = await res.json();
 			decryptedItems = [
 				...decryptedItems,
-				{ id: saved.id, categoryId: data.category.id, projectId: data.project.id, name, fields, sortOrder: saved.sortOrder }
+				{ id: saved.id, categoryId: data.category.id, projectId: data.project.id, name, fields, sortOrder: saved.sortOrder, createdAt: saved.createdAt, updatedAt: saved.updatedAt }
 			];
 			showNew = false;
 			toastStore.show('Item saved');
@@ -146,7 +152,11 @@
 		{/each}
 	</div>
 
-	{#if decryptedItems.length === 0 && !showNew && !decryptError}
+	{#if decrypting}
+		<div class="text-center py-20 text-muted">
+			<p class="text-sm">Decrypting…</p>
+		</div>
+	{:else if decryptedItems.length === 0 && !showNew && !decryptError}
 		<div class="text-center py-20 text-muted">
 			<p class="text-4xl mb-4">{data.category.icon}</p>
 			<p class="text-sm">No items yet. Click <strong class="text-lilac">+ Add Item</strong> to start.</p>

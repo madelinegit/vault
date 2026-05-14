@@ -1,13 +1,23 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { vaultStore } from '$lib/stores/vault';
 	import { decryptData } from '$lib/crypto';
-	import type { DecryptedItem, VaultField } from '$lib/stores/vault';
+	import type { VaultField } from '$lib/stores/vault';
 
 	let { onClose }: { onClose: () => void } = $props();
 
+	interface AIResult {
+		id: string;
+		name: string;
+		category: string;
+		categoryId: string;
+		projectId: string | null;
+		fields: VaultField[];
+	}
+
 	let query = $state('');
 	let loading = $state(false);
-	let results = $state<DecryptedItem[]>([]);
+	let results = $state<AIResult[]>([]);
 	let searched = $state(false);
 	let errorMsg = $state('');
 
@@ -20,7 +30,7 @@
 		try {
 			const indexRes = await fetch('/api/ai/index');
 			if (!indexRes.ok) throw new Error('Could not load vault index');
-			const index: Array<{ id: string; name: string; category: string; encryptedData: string; iv: string }> = await indexRes.json();
+			const index: Array<{ id: string; name: string; category: string; categoryId: string; projectId: string | null; encryptedData: string; iv: string }> = await indexRes.json();
 
 			const aiRes = await fetch('/api/ai', {
 				method: 'POST',
@@ -36,7 +46,7 @@
 			const decrypted = await Promise.all(
 				matched.map(async (item) => {
 					const fields = (await decryptData(item.encryptedData, item.iv, $vaultStore.key!)) as VaultField[];
-					return { id: item.id, categoryId: '', projectId: null, name: item.name, fields, sortOrder: 0 };
+					return { id: item.id, name: item.name, category: item.category, categoryId: item.categoryId, projectId: item.projectId, fields };
 				})
 			);
 
@@ -47,6 +57,15 @@
 		} finally {
 			loading = false;
 		}
+	}
+
+	function navigateTo(item: AIResult) {
+		if (item.projectId) {
+			goto(`/vault/${item.categoryId}/${item.projectId}`);
+		} else {
+			goto(`/vault/${item.categoryId}`);
+		}
+		onClose();
 	}
 
 	let copied = $state<string | null>(null);
@@ -114,7 +133,7 @@
 			<div class="rounded-xl px-4 py-3 text-sm" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: #FCA5A5;">{errorMsg}</div>
 		{:else if loading}
 			<div class="flex flex-col items-center justify-center py-16 gap-4">
-				<div class="text-3xl animate-spin" style="animation: spin 1.5s linear infinite;">✦</div>
+				<div class="text-3xl" style="animation: spin 1.5s linear infinite;">✦</div>
 				<p class="text-sm text-muted">Searching your vault…</p>
 			</div>
 		{:else if searched && results.length === 0}
@@ -125,28 +144,55 @@
 		{:else if results.length > 0}
 			<p class="text-xs text-muted px-1 mb-1">{results.length} result{results.length !== 1 ? 's' : ''}</p>
 			{#each results as item (item.id)}
-				<div class="rounded-xl p-4 flex flex-col gap-2.5"
+				<div class="rounded-xl flex flex-col gap-0 overflow-hidden"
 					style="background: rgba(212,184,224,0.05); border: 1px solid rgba(212,184,224,0.12);">
-					<p class="font-semibold text-sm" style="color: #D4B8E0;">{item.name}</p>
-					{#each item.fields as field}
-						{#if field.type !== 'image'}
-							<div class="flex items-center gap-2">
-								<span class="text-xs w-20 shrink-0 truncate capitalize" style="color: rgba(237,225,245,0.45);">{field.label || field.type}</span>
-								<span class="flex-1 text-xs font-mono truncate" style="color: {field.type === 'password' ? 'rgba(237,225,245,0.35)' : 'rgba(237,225,245,0.85)'};">
-									{field.type === 'password' ? '••••••••' : field.value || '—'}
-								</span>
-								{#if field.value}
-									<button
-										onclick={() => copyValue(field.value, item.id + field.id)}
-										class="text-xs px-2 py-0.5 rounded-md transition-all shrink-0"
-										style={copied === item.id + field.id
-											? 'background: rgba(153,229,234,0.18); color: #99E5EA;'
-											: 'background: rgba(212,184,224,0.08); color: rgba(212,184,224,0.5);'}
-									>{copied === item.id + field.id ? '✓ copied' : 'copy'}</button>
+
+					<!-- Item header + Go button -->
+					<div class="flex items-center justify-between gap-2 px-4 pt-3.5 pb-2">
+						<div class="min-w-0">
+							<p class="font-semibold text-sm truncate" style="color: #D4B8E0;">{item.name}</p>
+							<p class="text-xs mt-0.5 truncate" style="color: rgba(237,225,245,0.3);">{item.category}</p>
+						</div>
+						<button
+							onclick={() => navigateTo(item)}
+							class="shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+							style="background: rgba(153,229,234,0.12); border: 1px solid rgba(153,229,234,0.2); color: #99E5EA;"
+						>Go →</button>
+					</div>
+
+					<!-- Fields -->
+					{#if item.fields.length > 0}
+						<div class="px-4 pb-3.5 flex flex-col gap-2 pt-1" style="border-top: 1px solid rgba(212,184,224,0.07);">
+							{#each item.fields as field}
+								{#if field.type !== 'file' && field.type !== 'comment'}
+									<div class="flex items-center gap-2">
+										<span class="text-xs w-20 shrink-0 truncate capitalize" style="color: rgba(237,225,245,0.35);">{field.label || field.type}</span>
+										<span class="flex-1 text-xs font-mono truncate" style="color: {field.type === 'password' ? 'rgba(237,225,245,0.3)' : 'rgba(237,225,245,0.8)'};">
+											{field.type === 'password' ? '••••••••' : field.value || '—'}
+										</span>
+										{#if field.value && field.type !== 'password'}
+											<button
+												onclick={() => copyValue(field.value, item.id + field.id)}
+												class="text-xs px-2 py-0.5 rounded-md transition-all shrink-0"
+												style={copied === item.id + field.id
+													? 'background: rgba(153,229,234,0.18); color: #99E5EA;'
+													: 'background: rgba(212,184,224,0.08); color: rgba(212,184,224,0.5);'}
+											>{copied === item.id + field.id ? '✓' : 'copy'}</button>
+										{/if}
+										{#if field.type === 'password'}
+											<button
+												onclick={() => copyValue(field.value, item.id + field.id)}
+												class="text-xs px-2 py-0.5 rounded-md transition-all shrink-0"
+												style={copied === item.id + field.id
+													? 'background: rgba(153,229,234,0.18); color: #99E5EA;'
+													: 'background: rgba(212,184,224,0.08); color: rgba(212,184,224,0.5);'}
+											>{copied === item.id + field.id ? '✓ copied' : 'copy'}</button>
+										{/if}
+									</div>
 								{/if}
-							</div>
-						{/if}
-					{/each}
+							{/each}
+						</div>
+					{/if}
 				</div>
 			{/each}
 		{:else}

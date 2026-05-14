@@ -10,9 +10,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	if (!categoryId || !name || !encryptedData || !iv) error(400, 'Missing required fields');
 	const id = crypto.randomUUID();
 	const sortOrder = Math.floor(Date.now() / 1000);
+	const now = new Date();
 	await db.insert(vaultItems).values({ id, userId: locals.user.id, categoryId, projectId: projectId ?? null, name, encryptedData, iv, sortOrder });
 	await db.insert(auditLog).values({ id: crypto.randomUUID(), userId: locals.user.id, action: 'create_item', resourceType: 'vault_item', resourceId: id });
-	return json({ id, sortOrder });
+	return json({ id, sortOrder, createdAt: now.toISOString(), updatedAt: now.toISOString() });
 };
 
 export const PUT: RequestHandler = async ({ request, locals }) => {

@@ -16,8 +16,12 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	const message = await client.messages.create({
 		model: 'claude-haiku-4-5-20251001',
 		max_tokens: 256,
-		system: 'You are a vault search assistant. Given vault items (ID, name, category), return a JSON array of IDs matching the query. Return ONLY the JSON array.',
-		messages: [{ role: 'user', content: `Items:\n${itemsList}\n\nQuery: "${query}"\n\nMatching IDs:` }]
+		system: `You are a vault search assistant. Given a list of vault items (ID, name, category/project path), return a JSON array of IDs that are relevant to the user's query.
+
+Match broadly and semantically — if someone asks "what is my EIN", return items named "EIN Confirmation" or "EIN Letter". If they ask "Netflix", return "Netflix password" or "Netflix login". Match acronyms, related concepts, and partial names. Err on the side of including more results rather than fewer.
+
+Return ONLY a valid JSON array of matching IDs, e.g. ["id1","id2"]. Return [] if nothing matches.`,
+		messages: [{ role: 'user', content: `Items:\n${itemsList}\n\nQuery: "${query}"` }]
 	});
 
 	await db.insert(auditLog).values({ id: crypto.randomUUID(), userId: locals.user.id, action: 'ai_query', resourceType: 'ai' });
