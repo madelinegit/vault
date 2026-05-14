@@ -30,9 +30,7 @@
 	$effect.root(() => {
 		editing = initialEdit;
 		draftName = item.name;
-		draftFields = isNew
-			? [{ id: crypto.randomUUID(), label: '', value: '', type: 'text' }]
-			: item.fields.map((f) => ({ ...f }));
+		draftFields = isNew ? [] : item.fields.map((f) => ({ ...f }));
 	});
 
 	const FIELD_TYPES: VaultField['type'][] = ['text', 'password', 'url', 'email', 'phone', 'note', 'comment', 'number', 'file'];

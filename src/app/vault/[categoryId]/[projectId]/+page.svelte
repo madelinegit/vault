@@ -47,7 +47,11 @@
 	}
 
 	async function saveItem(name: string, fields: VaultField[]) {
-		if (!$vaultStore.key) return;
+		if (!$vaultStore.key) {
+			toastStore.show('Vault is locked — please log in again', 'error');
+			goto('/login');
+			return;
+		}
 		const { ciphertext, iv } = await encryptData(fields, $vaultStore.key);
 		const res = await fetch('/api/items', {
 			method: 'POST',
@@ -74,7 +78,11 @@
 	}
 
 	async function updateItem(id: string, name: string, fields: VaultField[]) {
-		if (!$vaultStore.key) return;
+		if (!$vaultStore.key) {
+			toastStore.show('Vault is locked — please log in again', 'error');
+			goto('/login');
+			return;
+		}
 		const { ciphertext, iv } = await encryptData(fields, $vaultStore.key);
 		const res = await fetch('/api/items', {
 			method: 'PUT',
