@@ -130,7 +130,7 @@
 						</div>
 					</button>
 
-					<div class="absolute top-2.5 right-2.5 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+					<div class="absolute top-2.5 right-2.5 flex gap-1 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity z-10">
 						<button
 							onclick={(e) => { e.stopPropagation(); editName = project.name; editingId = project.id; }}
 							class="text-xs px-2 py-1 rounded-lg transition-colors"

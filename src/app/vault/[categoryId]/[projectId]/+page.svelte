@@ -119,7 +119,7 @@
 	{/if}
 
 	{#if showNew}
-		<div class="mb-6">
+		<div class="mb-8 max-w-lg">
 			<SubTile
 				item={{ id: '', categoryId: data.category.id, projectId: data.project.id, name: '', fields: [], sortOrder: 0 }}
 				editMode={true}

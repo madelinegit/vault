@@ -71,7 +71,7 @@
 		<Nav email={data.user.email} onAiClick={() => (aiOpen = !aiOpen)} onLock={lockVault} />
 	{/if}
 
-	<main class={data.user ? 'flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full' : 'flex-1 flex flex-col'}>
+	<main class="flex-1 w-full" class:authed={!!data.user}>
 		{@render children()}
 	</main>
 </div>
@@ -81,3 +81,21 @@
 {/if}
 
 <Toast />
+
+<style>
+	main.authed {
+		padding: 2rem 2.5rem;
+		max-width: 90rem;
+		margin-left: auto;
+		margin-right: auto;
+	}
+	@media (max-width: 640px) {
+		main.authed {
+			padding: 1.25rem;
+		}
+	}
+	main:not(.authed) {
+		display: flex;
+		flex-direction: column;
+	}
+</style>
