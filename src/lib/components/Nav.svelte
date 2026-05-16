@@ -27,6 +27,16 @@
 
 		<div class="flex-1"></div>
 
+		<a
+			href="/chat"
+			class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all no-underline"
+			style="background: rgba(212,184,224,0.08); border: 1px solid rgba(212,184,224,0.18); color: rgba(212,184,224,0.75);"
+			title="AI Chat"
+		>
+			<span>💬</span>
+			<span class="hidden sm:inline">Chat</span>
+		</a>
+
 		<button
 			onclick={onAiClick}
 			class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all"
