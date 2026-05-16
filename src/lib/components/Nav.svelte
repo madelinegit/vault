@@ -29,23 +29,22 @@
 
 		<a
 			href="/chat"
-			class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all no-underline"
+			class="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all no-underline"
 			style="background: rgba(212,184,224,0.08); border: 1px solid rgba(212,184,224,0.18); color: rgba(212,184,224,0.75);"
-			title="AI Chat"
 		>
 			<span>💬</span>
-			<span class="hidden sm:inline">Chat</span>
+			<span>Chat</span>
 		</a>
 
 		<button
 			onclick={onAiClick}
-			class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all"
+			class="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all"
 			style="background: rgba(153,229,234,0.12); border: 1px solid rgba(153,229,234,0.25); color: #99E5EA;"
 			title="AI Search (⌘K)"
 		>
 			<span>✦</span>
-			<span>AI Search</span>
-			<kbd class="hidden sm:inline text-xs opacity-60 ml-1">⌘K</kbd>
+			<span class="hidden sm:inline">AI Search</span>
+			<kbd class="hidden md:inline text-xs opacity-60">⌘K</kbd>
 		</button>
 
 		<div class="relative">
