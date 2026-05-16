@@ -52,28 +52,35 @@
 			goto('/login');
 			return;
 		}
-		const { ciphertext, iv } = await encryptData(fields, $vaultStore.key);
-		const res = await fetch('/api/items', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({
+		try {
+			const { ciphertext, iv } = await encryptData(fields, $vaultStore.key);
+			const body = JSON.stringify({
 				categoryId: data.category.id,
 				projectId: data.project.id,
 				name,
 				encryptedData: ciphertext,
 				iv
-			})
-		});
-		if (res.ok) {
-			const saved = await res.json();
-			decryptedItems = [
-				...decryptedItems,
-				{ id: saved.id, categoryId: data.category.id, projectId: data.project.id, name, fields, sortOrder: saved.sortOrder, createdAt: saved.createdAt, updatedAt: saved.updatedAt }
-			];
-			showNew = false;
-			toastStore.show('Item saved');
-		} else {
-			toastStore.show('Failed to save item', 'error');
+			});
+			const res = await fetch('/api/items', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body
+			});
+			if (res.ok) {
+				const saved = await res.json();
+				decryptedItems = [
+					...decryptedItems,
+					{ id: saved.id, categoryId: data.category.id, projectId: data.project.id, name, fields, sortOrder: saved.sortOrder, createdAt: saved.createdAt, updatedAt: saved.updatedAt }
+				];
+				showNew = false;
+				toastStore.show('Item saved');
+			} else if (res.status === 413) {
+				toastStore.show('File too large — reduce file size and try again', 'error');
+			} else {
+				toastStore.show('Failed to save item', 'error');
+			}
+		} catch (e) {
+			toastStore.show('Save failed — file may be too large', 'error');
 		}
 	}
 
@@ -83,17 +90,23 @@
 			goto('/login');
 			return;
 		}
-		const { ciphertext, iv } = await encryptData(fields, $vaultStore.key);
-		const res = await fetch('/api/items', {
-			method: 'PUT',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ id, name, encryptedData: ciphertext, iv })
-		});
-		if (res.ok) {
-			decryptedItems = decryptedItems.map((item) => (item.id === id ? { ...item, name, fields } : item));
-			toastStore.show('Item updated');
-		} else {
-			toastStore.show('Failed to update item', 'error');
+		try {
+			const { ciphertext, iv } = await encryptData(fields, $vaultStore.key);
+			const res = await fetch('/api/items', {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ id, name, encryptedData: ciphertext, iv })
+			});
+			if (res.ok) {
+				decryptedItems = decryptedItems.map((item) => (item.id === id ? { ...item, name, fields } : item));
+				toastStore.show('Item updated');
+			} else if (res.status === 413) {
+				toastStore.show('File too large — reduce file size and try again', 'error');
+			} else {
+				toastStore.show('Failed to update item', 'error');
+			}
+		} catch (e) {
+			toastStore.show('Save failed — file may be too large', 'error');
 		}
 	}
 
