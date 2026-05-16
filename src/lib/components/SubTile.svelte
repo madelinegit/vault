@@ -26,6 +26,7 @@
 	let showPasswords = $state<Set<string>>(new Set());
 	let nameError = $state(false);
 	let fileErrors = $state<Record<string, string>>({});
+	let previewField = $state<VaultField | null>(null);
 
 	$effect.root(() => {
 		editing = initialEdit;
@@ -257,28 +258,24 @@
 				<div class="flex flex-col gap-1">
 					<span class="text-xs text-muted capitalize">{field.label || field.type}</span>
 					{#if field.type === 'file' && field.value}
-						{#if isImage(field.value)}
-							<img src={getFileData(field.value)} alt={field.label || 'attachment'} class="rounded-lg max-h-48 object-contain cursor-pointer" onclick={() => window.open(getFileData(field.value), '_blank')} />
-						{:else}
-							<div class="flex flex-col gap-1.5">
-								<div class="flex items-center gap-1.5 text-xs" style="color: rgba(212,184,224,0.5);">
-									<span>📎</span>
-									<span class="truncate">{getFileName(field.value)}</span>
-								</div>
-								<div class="flex gap-2">
-									<button
-										onclick={() => window.open(getFileData(field.value), '_blank')}
-										class="flex-1 py-2.5 rounded-xl text-xs font-medium"
-										style="background: rgba(153,229,234,0.12); border: 1px solid rgba(153,229,234,0.2); color: #99E5EA;"
-									>👁 Preview</button>
-									<button
-										onclick={() => downloadFile(field.value)}
-										class="flex-1 py-2.5 rounded-xl text-xs font-medium"
-										style="background: rgba(212,184,224,0.08); border: 1px solid rgba(212,184,224,0.15); color: rgba(212,184,224,0.7);"
-									>↓ Save</button>
-								</div>
+						<div class="flex flex-col gap-1.5">
+							<div class="flex items-center gap-1.5 text-xs" style="color: rgba(212,184,224,0.5);">
+								<span>{isImage(field.value) ? '🖼' : '📎'}</span>
+								<span class="truncate">{getFileName(field.value)}</span>
 							</div>
-						{/if}
+							<div class="flex gap-2">
+								<button
+									onclick={() => (previewField = field)}
+									class="flex-1 py-2.5 rounded-xl text-xs font-medium"
+									style="background: rgba(153,229,234,0.12); border: 1px solid rgba(153,229,234,0.2); color: #99E5EA;"
+								>👁 Preview</button>
+								<button
+									onclick={() => downloadFile(field.value)}
+									class="flex-1 py-2.5 rounded-xl text-xs font-medium"
+									style="background: rgba(212,184,224,0.08); border: 1px solid rgba(212,184,224,0.15); color: rgba(212,184,224,0.7);"
+								>↓ Save</button>
+							</div>
+						</div>
 					{:else if field.type === 'note'}
 						<p class="text-xs font-mono whitespace-pre-wrap break-words" style="color: rgba(212,184,224,0.9);">{field.value || '—'}</p>
 					{:else}
@@ -331,3 +328,53 @@
 		{/if}
 	{/if}
 </div>
+
+{#if previewField}
+	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+	<div
+		role="dialog"
+		class="fixed inset-0 z-50 flex flex-col"
+		style="background: rgba(5,2,15,0.92); backdrop-filter: blur(12px);"
+		onkeydown={(e) => e.key === 'Escape' && (previewField = null)}
+	>
+		<!-- Toolbar -->
+		<div class="flex items-center justify-between px-5 py-4 shrink-0" style="border-bottom: 1px solid rgba(212,184,224,0.12);">
+			<span class="text-sm font-medium truncate max-w-xs" style="color: #D4B8E0;">{getFileName(previewField.value)}</span>
+			<div class="flex gap-2 shrink-0">
+				<button
+					onclick={() => downloadFile(previewField!.value)}
+					class="px-4 py-2 rounded-xl text-xs font-medium"
+					style="background: rgba(212,184,224,0.08); border: 1px solid rgba(212,184,224,0.18); color: rgba(212,184,224,0.8);"
+				>↓ Save</button>
+				<button
+					onclick={() => { const w = window.open(); w?.document.write(`<iframe src="${getFileData(previewField!.value)}" style="width:100%;height:100%;border:none;"></iframe>`); }}
+					class="px-4 py-2 rounded-xl text-xs font-medium"
+					style="background: rgba(153,229,234,0.08); border: 1px solid rgba(153,229,234,0.18); color: rgba(153,229,234,0.7);"
+				>↗ New window</button>
+				<button
+					onclick={() => (previewField = null)}
+					class="w-9 h-9 rounded-xl flex items-center justify-center text-sm"
+					style="background: rgba(212,184,224,0.08); border: 1px solid rgba(212,184,224,0.15); color: rgba(212,184,224,0.6);"
+				>✕</button>
+			</div>
+		</div>
+
+		<!-- Content -->
+		<div class="flex-1 overflow-auto flex items-center justify-center p-4">
+			{#if isImage(previewField.value)}
+				<img
+					src={getFileData(previewField.value)}
+					alt={getFileName(previewField.value)}
+					class="max-w-full max-h-full object-contain rounded-lg"
+				/>
+			{:else}
+				<iframe
+					src={getFileData(previewField.value)}
+					title={getFileName(previewField.value)}
+					class="w-full rounded-lg"
+					style="height: calc(100vh - 120px); border: none;"
+				></iframe>
+			{/if}
+		</div>
+	</div>
+{/if}
