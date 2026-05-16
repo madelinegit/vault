@@ -4,6 +4,6 @@ buildCommand = "npm run build"
 
 [deploy]
 preDeployCommand = "node migrate.js"
-startCommand = "node build"
+startCommand = "BODY_SIZE_LIMIT=31457280 node build"
 healthcheckPath = "/login"
 restartPolicyType = "on_failure"
