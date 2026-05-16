@@ -7,6 +7,46 @@ import type { RequestHandler } from './$types';
 
 const MODEL_ID = 'ModelsLab/Llama-3.1-8b-Uncensored-Dare';
 const MODELSLAB_URL = 'https://modelslab.com/api/uncensored-chat/v1/chat/completions';
+const IMAGE_URL = 'https://modelslab.com/api/v6/images/text2img';
+const IMAGE_FETCH_URL = 'https://modelslab.com/api/v6/images/fetch';
+
+const IMAGE_RE = /\b(generate|draw|paint|render|illustrate|create|make)\b.{0,40}\b(image|photo|picture|art|illustration|drawing|portrait|scene|wallpaper|logo|icon|sketch)\b|\b(image|photo|picture|art)\s+(of|showing|depicting|featuring)\b/i;
+
+async function generateImage(prompt: string, apiKey: string): Promise<string> {
+	const res = await fetch(IMAGE_URL, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({
+			key: apiKey,
+			model_id: 'flux',
+			prompt,
+			negative_prompt: 'ugly, blurry, low quality, watermark, text',
+			width: 512,
+			height: 512,
+			samples: 1,
+			num_inference_steps: 20,
+			safety_checker: 'no',
+			enhance_prompt: 'yes'
+		})
+	});
+	const data = await res.json();
+	if (data.status === 'success' && data.output?.[0]) return data.output[0];
+	if (data.status === 'processing' && data.id) {
+		for (let i = 0; i < 12; i++) {
+			await new Promise((r) => setTimeout(r, 3000));
+			const poll = await fetch(`${IMAGE_FETCH_URL}/${data.id}`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ key: apiKey })
+			});
+			const pd = await poll.json();
+			if (pd.status === 'success' && pd.output?.[0]) return pd.output[0];
+			if (pd.status === 'error') throw new Error(pd.message || 'Image generation failed');
+		}
+		throw new Error('Image generation timed out');
+	}
+	throw new Error(data.message || 'Image generation failed');
+}
 
 const PERSONAS: Record<string, { system: string; temperature: number }> = {
 	default: {
@@ -76,6 +116,24 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			.values({ id: crypto.randomUUID(), userId: locals.user.id, title, persona })
 			.returning();
 		convId = newConv.id;
+	}
+
+	// Image generation path
+	if (IMAGE_RE.test(message.trim())) {
+		try {
+			const imageUrl = await generateImage(message.trim(), env.MODELSLAB_API_KEY);
+			const reply = `[image]${imageUrl}`;
+			await db.insert(chatMessages).values([
+				{ id: crypto.randomUUID(), conversationId: convId, role: 'user', content: fullUserContent, createdAt: new Date() },
+				{ id: crypto.randomUUID(), conversationId: convId, role: 'assistant', content: reply, createdAt: new Date(Date.now() + 1) }
+			]);
+			await db.update(chatConversations).set({ updatedAt: new Date() }).where(eq(chatConversations.id, convId));
+			await db.insert(auditLog).values({ id: crypto.randomUUID(), userId: locals.user.id, action: 'image_generate', resourceType: 'ai' });
+			return json({ reply, citations: [], conversationId: convId });
+		} catch (e: unknown) {
+			const msg = e instanceof Error ? e.message : 'Image generation failed';
+			error(502, msg);
+		}
 	}
 
 	// Load message history from DB

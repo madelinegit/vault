@@ -402,6 +402,24 @@
 								{currentPersona.icon}
 							</div>
 							<div class="flex flex-col gap-2 min-w-0">
+								{#if msg.content.startsWith('[image]')}
+								<div class="flex flex-col gap-2">
+									<img
+										src={msg.content.slice(7)}
+										alt="Generated"
+										class="rounded-2xl max-w-full object-contain"
+										style="max-height: 480px; border: 1px solid rgba(212,184,224,0.15);"
+									/>
+									<a
+										href={msg.content.slice(7)}
+										download="generated.png"
+										target="_blank"
+										rel="noopener noreferrer"
+										class="text-xs px-3 py-1.5 rounded-xl self-start no-underline"
+										style="background: rgba(212,184,224,0.08); border: 1px solid rgba(212,184,224,0.15); color: rgba(212,184,224,0.6);"
+									>⬇ Save image</a>
+								</div>
+							{:else}
 								<div class="glass rounded-2xl rounded-tl-sm px-4 py-3 text-sm leading-relaxed min-w-0">
 									{#each renderWithCodeBlocks(msg.content) as part, i}
 										{#if part.type === 'text'}
@@ -422,6 +440,7 @@
 										{/if}
 									{/each}
 								</div>
+							{/if}
 								{#if msg.citations && msg.citations.length > 0}
 									<div class="flex flex-col gap-1 pl-1">
 										<p class="text-xs" style="color: rgba(237,225,245,0.25);">Sources</p>
