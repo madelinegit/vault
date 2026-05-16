@@ -90,17 +90,23 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		? `${selectedPersona.system}\n\nWhen you reference information from the search results, cite them inline as [1], [2], etc.\n${searchContext}`
 		: selectedPersona.system;
 
+	// Build conversation history for context (all turns except the last user message)
+	const history = messages.slice(0, -1);
+	const historyText = history.length > 0
+		? '\n\nConversation so far:\n' + history.map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`).join('\n')
+		: '';
+
 	const res = await fetch('https://modelslab.com/api/v6/llm/chat', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({
 			key: env.MODELSLAB_API_KEY,
 			model_id: MODEL_ID,
-			messages: messages.map((m) => ({ role: m.role, content: m.content })),
+			prompt: lastMessage.content,
 			max_new_tokens: 2048,
 			temperature: selectedPersona.temperature,
 			top_p: 0.9,
-			system_prompt: systemPrompt
+			system_prompt: systemPrompt + historyText
 		})
 	});
 
