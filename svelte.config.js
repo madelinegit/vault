@@ -7,7 +7,7 @@ const config = {
 		runes: ({ filename }) => (filename.split(/[/\\]/).includes('node_modules') ? undefined : true)
 	},
 	kit: {
-		adapter: adapter({ bodyLimit: 30 * 1024 * 1024 }),
+		adapter: adapter(),
 		files: {
 			routes: 'src/app'
 		}
