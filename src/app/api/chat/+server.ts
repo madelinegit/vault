@@ -118,8 +118,9 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		convId = newConv.id;
 	}
 
-	// Image generation path
-	if (IMAGE_RE.test(message.trim())) {
+	// Image generation path — explicit mode OR regex match
+	const wantsImage = persona === 'image' || IMAGE_RE.test(message.trim());
+	if (wantsImage) {
 		try {
 			const imageUrl = await generateImage(message.trim(), env.MODELSLAB_API_KEY);
 			const reply = `[image]${imageUrl}`;
@@ -132,6 +133,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			return json({ reply, citations: [], conversationId: convId });
 		} catch (e: unknown) {
 			const msg = e instanceof Error ? e.message : 'Image generation failed';
+			console.error('Image generation error:', msg);
 			error(502, msg);
 		}
 	}

@@ -25,6 +25,7 @@
 
 	const PERSONAS = [
 		{ id: 'default', label: 'Assistant', icon: '🤖', desc: 'Helpful & balanced' },
+		{ id: 'image', label: 'Image', icon: '🎨', desc: 'Generate images from text' },
 		{ id: 'conspiracy', label: 'Conspiracy', icon: '🕳️', desc: 'Connect the dots' },
 		{ id: 'skeptic', label: 'Skeptic', icon: '🔬', desc: 'Question everything' },
 		{ id: 'devils_advocate', label: "Devil's Advocate", icon: '😈', desc: 'Flip the narrative' },
