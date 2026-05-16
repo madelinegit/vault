@@ -1,7 +1,8 @@
 import { json, error } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 import { db } from '$lib/server/db';
-import { auditLog } from '$lib/server/db/schema';
+import { auditLog, chatConversations, chatMessages } from '$lib/server/db/schema';
+import { eq, asc } from 'drizzle-orm';
 import type { RequestHandler } from './$types';
 
 const MODEL_ID = 'ModelsLab/Llama-3.1-8b-Uncensored-Dare';
@@ -40,16 +41,49 @@ interface TavilyResult {
 export const POST: RequestHandler = async ({ request, locals }) => {
 	if (!locals.user) error(401, 'Unauthorized');
 
-	const { messages, persona = 'default' } = (await request.json()) as {
-		messages: Array<{ role: string; content: string }>;
-		persona?: string;
-	};
+	const { message, persona = 'default', conversationId, fileName, fileContent } =
+		(await request.json()) as {
+			message: string;
+			persona?: string;
+			conversationId?: string;
+			fileName?: string;
+			fileContent?: string;
+		};
 
-	if (!Array.isArray(messages) || messages.length === 0) error(400, 'Invalid request');
+	if (!message?.trim()) error(400, 'Empty message');
+	if (message.length > 8000) error(400, 'Message too long');
 
-	const lastMessage = messages[messages.length - 1];
-	if (!lastMessage?.content?.trim()) error(400, 'Empty message');
-	if (lastMessage.content.length > 8000) error(400, 'Message too long');
+	// Build user message content — append file if provided
+	let fullUserContent = message.trim();
+	if (fileName && fileContent) {
+		const ext = fileName.split('.').pop() ?? '';
+		fullUserContent += `\n\n---\nAttached file: **${fileName}**\n\`\`\`${ext}\n${fileContent}\n\`\`\``;
+	}
+
+	// Load or create conversation
+	let convId = conversationId;
+	if (convId) {
+		const conv = await db
+			.select()
+			.from(chatConversations)
+			.where(eq(chatConversations.id, convId))
+			.limit(1);
+		if (!conv[0] || conv[0].userId !== locals.user.id) error(404, 'Conversation not found');
+	} else {
+		const title = message.trim().slice(0, 60) + (message.trim().length > 60 ? '…' : '');
+		const [newConv] = await db
+			.insert(chatConversations)
+			.values({ id: crypto.randomUUID(), userId: locals.user.id, title, persona })
+			.returning();
+		convId = newConv.id;
+	}
+
+	// Load message history from DB
+	const history = await db
+		.select()
+		.from(chatMessages)
+		.where(eq(chatMessages.conversationId, convId))
+		.orderBy(asc(chatMessages.createdAt));
 
 	// Tavily search
 	let searchContext = '';
@@ -61,39 +95,36 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
 				api_key: env.TAVILY_API_KEY,
-				query: lastMessage.content,
+				query: message.trim(),
 				search_depth: 'basic',
 				include_answer: false,
 				max_results: 6,
 				include_raw_content: false
 			})
 		});
-
 		if (tavilyRes.ok) {
 			const tavilyData = await tavilyRes.json();
 			const results: TavilyResult[] = tavilyData.results ?? [];
 			citations = results.map((r) => ({ title: r.title, url: r.url }));
 			if (results.length > 0) {
 				searchContext =
-					`\n\nCurrent web search results — use these to ground your response:\n` +
-					results
-						.map((r, i) => `[${i + 1}] ${r.title}\nURL: ${r.url}\n${r.content}`)
-						.join('\n\n');
+					`\n\nCurrent web search results:\n` +
+					results.map((r, i) => `[${i + 1}] ${r.title}\nURL: ${r.url}\n${r.content}`).join('\n\n');
 			}
 		}
 	} catch {
-		// Search failed — continue without it
+		// continue without search
 	}
 
 	const selectedPersona = PERSONAS[persona] ?? PERSONAS.default;
-
 	const systemPrompt = searchContext
-		? `${selectedPersona.system}\n\nWhen you reference information from the search results, cite them inline as [1], [2], etc.\n${searchContext}`
+		? `${selectedPersona.system}\n\nWhen referencing search results cite them as [1], [2], etc.\n${searchContext}`
 		: selectedPersona.system;
 
-	const chatMessages = [
+	const chatMessages_ = [
 		{ role: 'system', content: systemPrompt },
-		...messages.map((m) => ({ role: m.role, content: m.content }))
+		...history.map((m) => ({ role: m.role, content: m.content })),
+		{ role: 'user', content: fullUserContent }
 	];
 
 	const res = await fetch(MODELSLAB_URL, {
@@ -104,7 +135,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		},
 		body: JSON.stringify({
 			model: MODEL_ID,
-			messages: chatMessages,
+			messages: chatMessages_,
 			max_tokens: 2048,
 			temperature: selectedPersona.temperature,
 			top_p: 0.9
@@ -126,6 +157,31 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 	if (!reply) error(502, 'Empty response from AI');
 
+	// Save messages to DB
+	await db.insert(chatMessages).values([
+		{
+			id: crypto.randomUUID(),
+			conversationId: convId,
+			role: 'user',
+			content: fullUserContent,
+			createdAt: new Date()
+		},
+		{
+			id: crypto.randomUUID(),
+			conversationId: convId,
+			role: 'assistant',
+			content: reply,
+			citations: citations.length > 0 ? JSON.stringify(citations) : null,
+			createdAt: new Date(Date.now() + 1)
+		}
+	]);
+
+	// Update conversation timestamp
+	await db
+		.update(chatConversations)
+		.set({ updatedAt: new Date() })
+		.where(eq(chatConversations.id, convId));
+
 	await db.insert(auditLog).values({
 		id: crypto.randomUUID(),
 		userId: locals.user.id,
@@ -133,5 +189,5 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		resourceType: 'ai'
 	});
 
-	return json({ reply, citations });
+	return json({ reply, citations, conversationId: convId });
 };

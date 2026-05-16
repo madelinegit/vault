@@ -57,6 +57,28 @@ export const vaultItems = pgTable('vault_items', {
 	updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
 
+export const chatConversations = pgTable('chat_conversations', {
+	id: text('id').primaryKey(),
+	userId: text('user_id')
+		.notNull()
+		.references(() => users.id, { onDelete: 'cascade' }),
+	title: text('title').notNull(),
+	persona: text('persona').notNull().default('default'),
+	createdAt: timestamp('created_at').defaultNow().notNull(),
+	updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+export const chatMessages = pgTable('chat_messages', {
+	id: text('id').primaryKey(),
+	conversationId: text('conversation_id')
+		.notNull()
+		.references(() => chatConversations.id, { onDelete: 'cascade' }),
+	role: text('role').notNull(),
+	content: text('content').notNull(),
+	citations: text('citations'),
+	createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
 export const auditLog = pgTable('audit_log', {
 	id: text('id').primaryKey(),
 	userId: text('user_id')
