@@ -4,7 +4,8 @@ import { db } from '$lib/server/db';
 import { auditLog } from '$lib/server/db/schema';
 import type { RequestHandler } from './$types';
 
-const MODEL_ID = 'llama3-70b-8192';
+const MODEL_ID = 'ModelsLab/Llama-3.1-8b-Uncensored-Dare';
+const MODELSLAB_URL = 'https://modelslab.com/api/uncensored-chat/v1/chat/completions';
 
 const PERSONAS: Record<string, { system: string; temperature: number }> = {
 	default: {
@@ -90,23 +91,23 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		? `${selectedPersona.system}\n\nWhen you reference information from the search results, cite them inline as [1], [2], etc.\n${searchContext}`
 		: selectedPersona.system;
 
-	// Build conversation history for context (all turns except the last user message)
-	const history = messages.slice(0, -1);
-	const historyText = history.length > 0
-		? '\n\nConversation so far:\n' + history.map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`).join('\n')
-		: '';
+	const chatMessages = [
+		{ role: 'system', content: systemPrompt },
+		...messages.map((m) => ({ role: m.role, content: m.content }))
+	];
 
-	const res = await fetch('https://modelslab.com/api/v6/llm/chat', {
+	const res = await fetch(MODELSLAB_URL, {
 		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
+		headers: {
+			'Content-Type': 'application/json',
+			Authorization: `Bearer ${env.MODELSLAB_API_KEY}`
+		},
 		body: JSON.stringify({
-			key: env.MODELSLAB_API_KEY,
-			model_id: MODEL_ID,
-			prompt: lastMessage.content,
-			max_new_tokens: 2048,
+			model: MODEL_ID,
+			messages: chatMessages,
+			max_tokens: 2048,
 			temperature: selectedPersona.temperature,
-			top_p: 0.9,
-			system_prompt: systemPrompt + historyText
+			top_p: 0.9
 		})
 	});
 
@@ -119,10 +120,9 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	const data = await res.json();
 
 	let reply = '';
-	if (typeof data.output === 'string') reply = data.output;
+	if (data.choices?.[0]?.message?.content) reply = data.choices[0].message.content;
+	else if (typeof data.output === 'string') reply = data.output;
 	else if (Array.isArray(data.output) && data.output.length > 0) reply = String(data.output[0]);
-	else if (data.choices?.[0]?.message?.content) reply = data.choices[0].message.content;
-	else if (data.message) reply = String(data.message);
 
 	if (!reply) error(502, 'Empty response from AI');
 
